@@ -5,6 +5,10 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "sourceMap": true,
+        "rootDir": "src",
+        "typeRoots": ["types", "node_modules/@types"],
+        "esModuleInterop": true
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*", "types/**/*.d.ts"],
+    "exclude": ["node_modules", "dist"]
 }
