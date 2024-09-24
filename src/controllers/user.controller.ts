@@ -4,6 +4,8 @@ import { iLoginPayload, iRegisterPayload } from "../../types/user";
 import { compare, hash } from "bcrypt";
 import {
     checkIfUserAlreadyExists,
+    getUserDetails,
+    getUserId,
     getUserPasswordHash,
     insertUser,
 } from "../services/user.service";
@@ -47,7 +49,7 @@ export const loginUser = async (req: Request) => {
         const payload: iLoginPayload = req.body;
         LOGIN_SCHEMA.isValid(payload);
 
-        const stored_password_hash = await getUserPasswordHash(
+        const stored_password_hash: string = await getUserPasswordHash(
             req.pool,
             payload.email
         );
@@ -74,8 +76,20 @@ export const loginUser = async (req: Request) => {
             };
         }
 
+        const userId = await getUserId(req.pool, payload.email);
+
+        if (!userId) {
+            return {
+                status: 400,
+                response: createResponse(
+                    false,
+                    "User does not exist with the given email"
+                ),
+            };
+        }
+
         const access_token = sign(
-            { email: payload.email },
+            { userId: userId },
             process.env.JWT_ACCESS_SECRET,
             { expiresIn: "1d" }
         );
@@ -84,6 +98,35 @@ export const loginUser = async (req: Request) => {
             status: 200,
             response: createResponse(true, "successfully logged in"),
             token: access_token,
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const userDetails = async (req: Request) => {
+    try {
+        const userId = req.userId;
+
+        const userDetails = await getUserDetails(req.pool, userId);
+
+        if (Object.keys(userDetails).length === 0) {
+            return {
+                status: 400,
+                response: createResponse(
+                    false,
+                    "User does not exist. You might have deleted the account"
+                ),
+            };
+        }
+
+        return {
+            status: 200,
+            response: createResponse(
+                true,
+                "Successfully fetched user details",
+                userDetails
+            ),
         };
     } catch (error) {
         throw error;

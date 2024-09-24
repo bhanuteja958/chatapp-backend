@@ -54,3 +54,32 @@ export const getUserPasswordHash = async (pool: Pool, email: string) => {
         throw error;
     }
 };
+
+export const getUserId = async (pool: Pool, email: string) => {
+    try {
+        const query: string = "SELECT user_id from users where email=?";
+        const placeHolderValues: string[] = [email];
+        const [result]: [RowDataPacket[], FieldPacket[]] = await pool.query(
+            query,
+            placeHolderValues
+        );
+        return result.length > 0 ? result[0].user_id : "";
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getUserDetails = async (pool: Pool, userId: string) => {
+    try {
+        const query: string =
+            "SELECT user_id, email, date_of_birth, full_name, profile_pic, verified from users where user_id = ?";
+        const placeHolderValues = [userId];
+        const [result]: [RowDataPacket[], FieldPacket[]] = await pool.query(
+            query,
+            placeHolderValues
+        );
+        return result.length > 0 ? result[0] : {};
+    } catch (error) {
+        throw error;
+    }
+};
